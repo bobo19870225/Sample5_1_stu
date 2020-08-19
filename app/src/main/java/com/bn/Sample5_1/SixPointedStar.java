@@ -1,5 +1,7 @@
 package com.bn.Sample5_1;
-import static com.bn.Sample5_1.ShaderUtil.createProgram;
+
+import android.opengl.GLES30;
+import android.opengl.Matrix;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -7,8 +9,7 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.opengl.GLES30;
-import android.opengl.Matrix;
+import static com.bn.Sample5_1.ShaderUtil.createProgram;
 
 //六角星
 public class SixPointedStar 
@@ -37,11 +38,10 @@ public class SixPointedStar
     }
     
 	//初始化顶点数据的initVertexData方法
-    public void initVertexData(float R,float r,float z)
-    {
-		List<Float> flist=new ArrayList<Float>();
-		float tempAngle=360/6;
-		for(float angle=0;angle<360;angle+=tempAngle)//循环生成构成六角形各三角形的顶点坐标
+    public void initVertexData(float R,float r,float z) {
+		List<Float> flist = new ArrayList<>();
+		float tempAngle = 60;//  360/6
+		for (float angle = 0; angle < 360; angle += tempAngle)//循环生成构成六角形各三角形的顶点坐标
 		{
 			//第一个三角形
 			//第一个点的x、y、z坐标
@@ -49,26 +49,28 @@ public class SixPointedStar
 			flist.add(0f);
 			flist.add(z);
 			//第二个点的x、y、z坐标
-			flist.add((float) (R*UNIT_SIZE*Math.cos(Math.toRadians(angle))));
-			flist.add((float) (R*UNIT_SIZE*Math.sin(Math.toRadians(angle))));
+			flist.add((float) (R * UNIT_SIZE * Math.cos(Math.toRadians(angle))));
+			flist.add((float) (R * UNIT_SIZE * Math.sin(Math.toRadians(angle))));
 			flist.add(z);
 			//第三个点的x、y、z坐标
-			flist.add((float) (r*UNIT_SIZE*Math.cos(Math.toRadians(angle+tempAngle/2))));
-			flist.add((float) (r*UNIT_SIZE*Math.sin(Math.toRadians(angle+tempAngle/2))));
+			double cos = Math.cos(Math.toRadians(angle + tempAngle / 2));
+			flist.add((float) (r * UNIT_SIZE * cos));
+			double sin = Math.sin(Math.toRadians(angle + tempAngle / 2));
+			flist.add((float) (r * UNIT_SIZE * sin));
 			flist.add(z);
-			
+
 			//第二个三角形
 			//第一个中心点的x、y、z坐标
 			flist.add(0f);
 			flist.add(0f);
 			flist.add(z);
 			//第二个点的x、y、z坐标
-			flist.add((float) (r*UNIT_SIZE*Math.cos(Math.toRadians(angle+tempAngle/2))));
-			flist.add((float) (r*UNIT_SIZE*Math.sin(Math.toRadians(angle+tempAngle/2))));
+			flist.add((float) (r * UNIT_SIZE * cos));
+			flist.add((float) (r * UNIT_SIZE * sin));
 			flist.add(z);
 			//第三个点的x、y、z坐标
-			flist.add((float) (R*UNIT_SIZE*Math.cos(Math.toRadians(angle+tempAngle))));
-			flist.add((float) (R*UNIT_SIZE*Math.sin(Math.toRadians(angle+tempAngle))));
+			flist.add((float) (R * UNIT_SIZE * Math.cos(Math.toRadians(angle + tempAngle))));
+			flist.add((float) (R * UNIT_SIZE * Math.sin(Math.toRadians(angle + tempAngle))));
 			flist.add(z);
 		}
 		vCount=flist.size()/3;
@@ -90,20 +92,17 @@ public class SixPointedStar
         
         //顶点着色数据的初始化================begin============================
 		float[] colorArray=new float[vCount*4];//顶点着色数据的初始化
-		for(int i=0;i<vCount;i++)
-		{
-			if(i%3==0){//中心点为白色，RGBA 4个通道[1,1,1,0]
-				colorArray[i*4]=1;
-				colorArray[i*4+1]=1;
-				colorArray[i*4+2]=1;
-				colorArray[i*4+3]=0;
+		for(int i=0;i<vCount;i++) {
+			if (i % 3 == 0) {//中心点为白色，RGBA 4个通道[1,1,1,0]
+				colorArray[i * 4] = 1;
+				colorArray[i * 4 + 1] = 1;
+				colorArray[i * 4 + 2] = 1;
+			} else {//边上的点为淡蓝色，RGBA 4个通道[0.45,0.75,0.75,0]
+				colorArray[i * 4] = 0.45f;
+				colorArray[i * 4 + 1] = 0.75f;
+				colorArray[i * 4 + 2] = 0.75f;
 			}
-			else{//边上的点为淡蓝色，RGBA 4个通道[0.45,0.75,0.75,0]
-				colorArray[i*4]=0.45f;
-				colorArray[i*4+1]=0.75f;
-				colorArray[i*4+2]=0.75f;
-				colorArray[i*4+3]=0;
-			}
+			colorArray[i * 4 + 3] = 0;
 		}
 		ByteBuffer cbb=ByteBuffer.allocateDirect(colorArray.length*4);
 		cbb.order(ByteOrder.nativeOrder());	//设置字节顺序为本地操作系统顺序
